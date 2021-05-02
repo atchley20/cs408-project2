@@ -32,6 +32,8 @@ public class CrosswordViewModel extends ViewModel {
     private final MutableLiveData<String> cluesAcross = new MutableLiveData<String>();
     private final MutableLiveData<String> cluesDown = new MutableLiveData<String>();
 
+    private boolean game_over;
+
     // Initialize Shared Model
 
     public void init(Context context) {
@@ -92,20 +94,92 @@ public class CrosswordViewModel extends ViewModel {
 
         // Place word letters into Letters array
 
-        /*
+        for (int i = 0; i < word.getWord().length(); i++)
+        {
+            if (word.getDirection().equals(Word.DOWN))
+            {
+                letters.getValue()[row][column] = BLANK_CHAR;
+                row++;
+            }
 
-            INSERT YOUR CODE HERE
-
-         */
+            if (word.getDirection().equals(Word.ACROSS))
+            {
+                letters.getValue()[row][column] = BLANK_CHAR;
+                column++;
+            }
+        }
 
     }
+    void showWordOnGrid(String key) {
 
+        // Get Word from collection (look up using the given key)
+
+        Word word = words.getValue().get(key);
+
+        // Get Word Properties
+
+        int row = word.getRow();
+        int column = word.getColumn();
+        int box = word.getBox();
+
+        // Place box number into Numbers array
+
+        numbers.getValue()[row][column] = box;
+
+        // Place word letters into Letters array
+
+        for (int i = 0; i < word.getWord().length(); i++) {
+
+            if (word.getDirection().equals(Word.DOWN))
+            {
+                letters.getValue()[row][column] = word.getWord().charAt(i);
+                row++;
+            }
+
+            if (word.getDirection().equals(Word.ACROSS))
+            {
+                letters.getValue()[row][column] = word.getWord().charAt(i);
+                column++;
+            }
+        }
+
+    }
     // Add All Words to Grid (for testing only!)
+
 
     private void addAllWordsToGrid() {
         for (Map.Entry<String, Word> e : words.getValue().entrySet()) {
             addWordToGrid( e.getKey() );
         }
+    }
+    public boolean isGameOver(){
+        game_over = true;
+        for(int i = 0; i < letters.getValue().length; ++i)
+        {
+            for(int j = 0; j < letters.getValue()[i].length; ++j)
+            {
+                if(letters.getValue()[i][j] == BLANK_CHAR)
+                {
+                    game_over = false;
+                    break;
+                }
+            }
+        }
+        return game_over;
+    }
+
+    public String getWord(int number, String direction){
+        String key = String.valueOf(number) + direction;
+        if(words.getValue().get(key) != null)
+        {
+            return words.getValue().get(key).getWord();
+        }else {
+            return null;
+        }
+    }
+    public int getNumber(int row, int column)
+    {
+        return numbers.getValue() [row][column];
     }
 
     // Load Words from Puzzle Data File ("puzzle.csv")
@@ -138,17 +212,19 @@ public class CrosswordViewModel extends ViewModel {
                     map.put(key, word);
 
                     // Append clue to StringBuilder buffer (clueAcrossBuffer or clueDownBuffer)
+                    if(word.getDirection().toUpperCase().equals(Word.DOWN))
+                    {
+                        clueDownBuffer.append(String.valueOf(word.getBox()) + ": " + word.getClue() + "\n");
+                    }
+                    if(word.getDirection().toUpperCase().equals(Word.ACROSS))
+                    {
+                        clueAcrossBuffer.append(String.valueOf(word.getBox()) + ": " + word.getClue() + "\n");
+                    }
 
-                    /*
-
-                        INSERT YOUR CODE HERE
-
-                     */
 
                 }
                 else if (fields.length == WORD_HEADER_FIELDS) {
 
-                    // Header Row; get puzzle height and width
                     puzzleHeight.setValue(Integer.parseInt(fields[0]));
                     puzzleWidth.setValue(Integer.parseInt(fields[1]));
 
